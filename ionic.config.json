@@ -1,0 +1,7 @@
+{
+  "name": "AnnuaireContactTest",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
