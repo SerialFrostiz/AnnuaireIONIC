@@ -14,13 +14,6 @@
       <ion-list>
       <div v-if="contactsList.length > 0">    
       <div v-for="(contact, index) in contactsList" :key="index">
-      <ion-modal
-        :is-open="false"
-        :swipe-to-close="true"
-        trigger="trigger-button"
-      >
-      <ion-content>Modal card</ion-content>
-      </ion-modal>
       <ion-nav>
           <ion-accordion-group>
       <ion-accordion>
@@ -29,16 +22,21 @@
         <ion-label>{{contact.name}} {{contact.surname}}</ion-label>
       </ion-item>
       <ion-list slot="content" style="padding:4px 0px;">
-        <ion-button id="trigger-button">Editer</ion-button>
+        <ion-button @click="updateContact(updatedContactsList)">Editer</ion-button>
+        <ion-button @click="createFav(index)" style="--background:green;">Favori</ion-button>
         <ion-button @click="deleteContact(index)" style="--background:red;">Supprimer</ion-button>
+        
         <ion-item>
-          <ion-label>Name : {{contact.name}}</ion-label>
+          <ion-label>Name : </ion-label><ion-input v-model="updatedContactsList[index].name"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-label>Surname : {{contact.surname}}</ion-label>
+          <ion-label>Surname : </ion-label><ion-input v-model="updatedContactsList[index].surname"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-label>Address : {{contact.address}}</ion-label>
+          <ion-label>Telephone</ion-label><ion-input v-model="updatedContactsList[index].phoneNumber"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>Address : </ion-label><ion-input v-model="updatedContactsList[index].address"></ion-input>
         </ion-item>
       </ion-list>
     </ion-accordion>
@@ -57,7 +55,7 @@
 import { Contact } from '@/domains/contact.interface';
 
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonIcon,actionSheetController, IonModal,IonButton} from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonIcon,IonButton, IonInput} from '@ionic/vue';
 import ExploreContainer from '@/components/ExploreContainer.vue';
 import contactQuery from '@/query/contact.query';
 import { person } from 'ionicons/icons';
@@ -65,61 +63,57 @@ import contactCommand from '@/commands/contact.command';
 
 export default defineComponent({
   name: 'Tab2Page',
-  components: {IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonList, IonIcon, IonButton, IonModal},
+  components: {IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonList, IonIcon, IonButton, IonInput},
   mounted(){
     this.getContacts();
+    this.getFavs();
+    //this.updatedContactsList = this.contactsList;
+
   },
   data() {
     return{
       contactsList: [] as Array<Contact>,
-      test: [] as Array<Contact>,
-      contactInfo: {
-      name: "",
-      surname: "",
-      address: "",
-      company: "",
-      phoneNumber: "",
-      photo: "",
-      mail: "",
-      note: ""
-} as Contact }},
+      updatedContactsList: [] as Array<Contact>,
+      favsList: [] as Array<Contact>
+    }
+  },
   methods: {
     getContacts() {
      this.contactsList = contactQuery.getContacts();
+     this.updatedContactsList = contactQuery.getContacts();
      return 
     },
+    getFavs() {
+     this.favsList = contactQuery.getFavs();
+     this.updatedContactsList = contactQuery.getContacts();
+     return 
+    },
+    updateContact(updatedContactsList: Array<Contact>) {
+      contactCommand.updateContact(updatedContactsList);
+      this.contactsList = contactQuery.getContacts();
+      this.updatedContactsList = this.contactsList;
+      return 
+    },
     deleteContact(contactIndex: number) {
-      return contactCommand.deleteContact(contactIndex);
+      contactCommand.deleteContact(contactIndex);
+      this.favsList = contactQuery.getFavs();
+      this.contactsList = contactQuery.getContacts();
+      this.updatedContactsList = this.contactsList;
+      return
+    },
+    createFav(contactIndex: number) {
+      contactCommand.createFav(contactIndex);
+      this.favsList = contactQuery.getFavs();
+      return
     }
      },
   setup() {
-      const canDismiss = async () => {
-        const actionSheet = await actionSheetController.create({
-          header: 'Are you sure you want to discard your changes?',
-          buttons: [
-            {
-              text: 'Discard Changes',
-              role: 'destructive'
-            },
-            {
-              text: 'Keep Editing',
-              role: 'cancel'
-            }
-          ]
-        });
-        
-        await actionSheet.present();
-        
-        const { role } = await actionSheet.onDidDismiss();
-        
-        if (role === 'destructive') {
-          return true;
-        }
-        
-        return false;
-      };
-      
-      return { canDismiss, person }
+      return { person }
+    },
+    activated() {
+      this.contactsList = contactQuery.getContacts();
+     this.updatedContactsList = this.contactsList;
+     this.favsList = contactQuery.getFavs();
     }
   
 });

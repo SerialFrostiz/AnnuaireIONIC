@@ -37,6 +37,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput } from '
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonIcon, IonItem, IonLabel } from '@ionic/vue';
 import { pin, walk, warning, wifi, wine } from 'ionicons/icons';
 import contactCommand from '@/commands/contact.command';
+import contactQuery from '@/query/contact.query';
 
 export default  defineComponent({
   name: 'Tab1Page',
@@ -51,11 +52,14 @@ export default  defineComponent({
       photo: "",
       mail: "",
       note: ""
-} as Contact }},
+    } as Contact,
+    contactsList: [] as Array<Contact> }},
     methods: {
       createContact() {
         const contact: Contact = this.contactform;
-        return contactCommand.createContact(contact);
+        contactCommand.createContact(contact);
+        this.contactsList = contactQuery.getContacts();
+        return
       }
     }
     
